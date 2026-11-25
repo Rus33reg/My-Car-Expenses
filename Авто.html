@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#e6e7ec">
+<title>Расходы на авто</title>
+<style>
+:root{
+  --bg:#e6e7ec; --hi:#ffffff; --sh:#c2c4cc; --ink:#3a3d44; --mut:#8a8e97;
+  --mint:#b9ead3; --mint2:#8fd8b8; --mintdeep:#5fbf94; --focus:#00cfcc;
+  --warn:#f3d98b; --err:#f0a9a9; --ok:#a9e8c6;
+  --r-lg:26px; --r-md:18px; --r-pill:999px;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html{font-size:clamp(15px,2.6vw,18px)}
+body{
+  font-family:-apple-system,"SF Pro Display","Segoe UI",Roboto,Arial,sans-serif;
+  background:var(--bg); color:var(--ink);
+  min-height:100vh; padding:14px 14px calc(96px + env(safe-area-inset-bottom));
+  max-width:640px; margin:0 auto; user-select:none;
+}
+.neu{background:var(--bg);border-radius:var(--r-lg);
+  box-shadow:7px 7px 14px var(--sh),-7px -7px 14px var(--hi)}
+.neu-sm{background:var(--bg);border-radius:var(--r-md);
+  box-shadow:4px 4px 9px var(--sh),-4px -4px 9px var(--hi)}
+.inset{background:var(--bg);border-radius:var(--r-md);
+  box-shadow:inset 4px 4px 9px var(--sh),inset -4px -4px 9px var(--hi)}
+h1{font-size:1.7rem;font-weight:800;letter-spacing:-.5px}
+h2{font-size:1.05rem;font-weight:700;margin:22px 0 10px}
+.mut{color:var(--mut);font-size:.82rem}
+
+/* avatar */
+.avatar-wrap{padding:16px;margin-bottom:16px}
+.avatar-row{display:flex;gap:16px;align-items:center}
+.avatar{width:104px;height:104px;border-radius:28px;overflow:hidden;flex:none;
+  box-shadow:6px 6px 12px var(--sh),-6px -6px 12px var(--hi)}
+.avatar img{width:100%;height:100%;object-fit:cover}
+.avatar .ph{width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:2.4rem}
+.car-name{font-size:1.15rem;font-weight:700}
+.car-sub{font-size:.85rem;color:var(--mut);margin-top:2px}
+.tankbar{height:12px;border-radius:999px;margin-top:10px;
+  box-shadow:inset 3px 3px 6px var(--sh),inset -3px -3px 6px var(--hi);overflow:hidden}
+.tankfill{height:100%;border-radius:999px;background:linear-gradient(90deg,var(--mint2),var(--mint));transition:width .5s}
+
+/* stats */
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.stat{padding:14px}
+.stat .v{font-size:1.25rem;font-weight:800}
+.stat .l{font-size:.75rem;color:var(--mut);margin-top:3px}
+
+/* chart */
+.chart{display:flex;align-items:flex-end;gap:10px;height:130px;padding:16px;margin-top:14px}
+.bar{flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;height:100%;justify-content:flex-end}
+.bar .col{width:70%;max-width:34px;border-radius:12px 12px 8px 8px;min-height:6px;
+  background:linear-gradient(180deg,var(--mint2),var(--mint));
+  box-shadow:3px 3px 7px var(--sh),-2px -2px 6px var(--hi)}
+.bar .m{font-size:.68rem;color:var(--mut)}
+
+/* chips */
+.chips{display:flex;flex-wrap:wrap;gap:10px}
+.chip{padding:10px 15px;border-radius:var(--r-pill);font-size:.86rem;font-weight:600;
+  box-shadow:4px 4px 9px var(--sh),-4px -4px 9px var(--hi);cursor:pointer;transition:.15s}
+.chip.on{box-shadow:inset 4px 4px 8px var(--sh),inset -4px -4px 8px var(--hi);color:var(--mintdeep)}
+
+/* inputs */
+.field{margin-bottom:16px}
+.field label{display:block;font-size:.8rem;font-weight:600;margin-bottom:8px;color:var(--mut)}
+input,select,textarea{
+  width:100%;padding:15px 17px;border:none;outline:none;border-radius:var(--r-md);
+  background:var(--bg);color:var(--ink);font-size:1rem;font-family:inherit;
+  box-shadow:inset 4px 4px 9px var(--sh),inset -4px -4px 9px var(--hi)}
+input:focus-visible,select:focus-visible{box-shadow:inset 4px 4px 9px var(--sh),inset -4px -4px 9px var(--hi),0 0 0 2.5px var(--focus)}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.total-box{padding:18px;text-align:center;border-radius:var(--r-md);
+  box-shadow:inset 5px 5px 11px var(--sh),inset -5px -5px 11px var(--hi)}
+.total-box .tv{font-size:1.6rem;font-weight:800;color:var(--mintdeep)}
+.total-box .tl{font-size:.78rem;color:var(--mut);margin-top:2px}
+
+/* buttons */
+.btn{display:block;width:100%;padding:16px;border:none;border-radius:var(--r-pill);
+  background:linear-gradient(145deg,var(--mint),#a9e4c6);color:#28503e;
+  font-size:1rem;font-weight:700;font-family:inherit;cursor:pointer;
+  box-shadow:6px 6px 12px var(--sh),-6px -6px 12px var(--hi);transition:.12s}
+.btn:active{box-shadow:inset 5px 5px 10px var(--sh),inset -5px -5px 10px var(--hi)}
+.btn.gray{background:var(--bg);color:var(--ink)}
+.btn-row{display:flex;gap:12px}
+.btn-row .btn{flex:1}
+
+/* colors */
+.swatches{display:flex;flex-wrap:wrap;gap:12px}
+.sw{width:44px;height:44px;border-radius:16px;cursor:pointer;border:3px solid transparent;
+  box-shadow:4px 4px 9px var(--sh),-4px -4px 9px var(--hi)}
+.sw.on{border-color:var(--mintdeep);box-shadow:inset 3px 3px 7px rgba(0,0,0,.25),0 0 0 3px var(--focus)}
+
+/* nav */
+nav{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(12px + env(safe-area-inset-bottom));
+  width:min(440px,calc(100% - 24px));display:flex;align-items:center;justify-content:space-around;
+  padding:10px 12px;border-radius:var(--r-pill);z-index:20;
+  background:var(--bg);box-shadow:8px 8px 18px var(--sh),-8px -8px 18px var(--hi)}
+.nav-btn{background:none;border:none;font-size:.68rem;font-weight:600;color:var(--mut);
+  display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;width:64px;padding:4px 0}
+.nav-btn.on{color:var(--mintdeep)}
+.nav-btn .ic{font-size:1.25rem}
+.fab{width:60px;height:60px;border-radius:50%;border:none;cursor:pointer;
+  background:linear-gradient(145deg,var(--mint2),var(--mint));color:#28503e;font-size:1.7rem;font-weight:700;
+  box-shadow:6px 6px 13px var(--sh),-6px -6px 13px var(--hi);margin-top:-26px;transition:.12s}
+.fab:active{box-shadow:inset 5px 5px 10px var(--sh),inset -5px -5px 10px var(--hi)}
+
+/* history */
+.entry{padding:14px 16px;margin-bottom:12px;display:flex;justify-content:space-between;gap:10px;align-items:center}
+.entry .t{font-weight:700;font-size:.95rem}
+.entry .s{font-size:.82rem;color:var(--mut);margin-top:3px}
+.entry .sum{font-weight:800;white-space:nowrap}
+.entry .act{display:flex;gap:8px;margin-top:6px}
+.mini{padding:7px 14px;border-radius:var(--r-pill);border:none;background:var(--bg);
+  font-size:.75rem;font-weight:600;color:var(--mut);font-family:inherit;cursor:pointer;
+  box-shadow:3px 3px 7px var(--sh),-3px -3px 7px var(--hi)}
+.mini:active{box-shadow:inset 3px 3px 6px var(--sh),inset -3px -3px 6px var(--hi)}
+.mini.del{color:#b04040}
+
+/* photo grid */
+.pgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:12px}
+.pgrid img{width:100%;height:86px;object-fit:cover;border-radius:14px;cursor:pointer;
+  box-shadow:4px 4px 9px var(--sh),-4px -4px 9px var(--hi)}
+.pgrid img.on{outline:3px solid var(--focus)}
+
+/* garage */
+.carcard{padding:14px;margin-bottom:14px;display:flex;gap:14px;align-items:center}
+.carcard .mini-avatar{width:56px;height:56px;border-radius:18px;overflow:hidden;flex:none;
+  box-shadow:3px 3px 7px var(--sh),-3px -3px 7px var(--hi)}
+.carcard .mini-avatar img{width:100%;height:100%;object-fit:cover}
+.carcard .ph{width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:1.3rem}
+.cdot{width:14px;height:14px;border-radius:50%;display:inline-block;vertical-align:-2px;
+  box-shadow:1px 1px 3px var(--sh)}
+
+.tabs{display:flex;gap:6px;padding:6px;border-radius:var(--r-pill);
+  box-shadow:inset 4px 4px 9px var(--sh),inset -4px -4px 9px var(--hi);margin-bottom:16px}
+.tabs button{flex:1;padding:11px 6px;border:none;border-radius:var(--r-pill);background:none;
+  font-size:.86rem;font-weight:700;font-family:inherit;color:var(--mut);cursor:pointer}
+.tabs button.on{background:linear-gradient(145deg,var(--mint),#a9e4c6);color:#28503e;
+  box-shadow:3px 3px 8px var(--sh),-3px -3px 8px var(--hi)}
+
+.checkbox{display:flex;align-items:center;gap:10px;margin-bottom:16px;font-size:.9rem;font-weight:600}
+.checkbox input{width:22px;height:22px;accent-color:var(--mintdeep);box-shadow:none}
+.empty{text-align:center;color:var(--mut);padding:30px 10px;font-size:.9rem}
+.hidden{display:none!important}
+</style>
+</head>
+<body>
+
+<div id="view-overview">
+  <h1 id="hTitle">Расходы на авто</h1>
+  <p class="mut" id="hSub" style="margin:4px 0 16px"></p>
+  <div class="avatar-wrap neu">
+    <div class="avatar-row">
+      <div class="avatar" id="oAvatar"></div>
+      <div style="flex:1;min-width:0">
+        <div class="car-name" id="oName">—</div>
+        <div class="car-sub" id="oCarSub"></div>
+        <div class="mut" id="oTankLbl" style="margin-top:8px"></div>
+        <div class="tankbar"><div class="tankfill" id="oTankFill" style="width:0%"></div></div>
+      </div>
+    </div>
+  </div>
+  <div class="stats">
+    <div class="stat neu-sm"><div class="v" id="stMonth">0 ₽</div><div class="l">Расходы за месяц</div></div>
+    <div class="stat neu-sm"><div class="v" id="stAll">0 ₽</div><div class="l">Всего за всё время</div></div>
+    <div class="stat neu-sm"><div class="v" id="stCons">—</div><div class="l">Средний расход, л/100 км</div></div>
+    <div class="stat neu-sm"><div class="v" id="stKm">—</div><div class="l">Стоимость километра</div></div>
+  </div>
+  <h2>Отчёт по топливу</h2>
+  <div class="stat neu" style="padding:16px">
+    <div class="mut" id="repFuel" style="margin-bottom:8px"></div>
+    <div class="mut" id="repKm"></div>
+    <div class="mut" id="repLast" style="margin-top:8px"></div>
+  </div>
+  <h2>Расходы за 6 месяцев</h2>
+  <div class="chart neu" id="chart"></div>
+  <div class="btn-row" style="margin-top:18px">
+    <button class="btn gray" onclick="exportCSV()">Экспорт CSV</button>
+  </div>
+</div>
+
+<div id="view-add" class="hidden">
+  <h1 id="addTitle">Новая запись</h1>
+  <h2>Категория</h2>
+  <div class="chips" id="catChips"></div>
+  <div id="fuelFields">
+    <h2>Заправка</h2>
+    <div class="field"><label>Объём топлива, л</label><input type="number" inputmode="decimal" id="fLiters" step="0.01" min="0" placeholder="например, 42.5"></div>
+    <div class="field"><label>Цена за литр, ₽</label><input type="number" inputmode="decimal" id="fPrice" step="0.01" min="0" placeholder="например, 61.90"></div>
+    <div class="total-box neu" style="margin:18px 0">
+      <div class="tv" id="fTotal">0,00 ₽</div>
+      <div class="tl">Итого к оплате — считается автоматически</div>
+    </div>
+    <div class="field"><label>Пробег (одометр), км</label><input type="number" inputmode="numeric" id="fOdo" min="0" placeholder="текущий пробег"></div>
+    <div class="checkbox"><input type="checkbox" id="fFull"><label for="fFull" style="margin:0;color:var(--ink)">Заправлен до полного бака</label></div>
+  </div>
+  <div id="sumField" class="field hidden"><label>Сумма, ₽</label><input type="number" inputmode="decimal" id="fSum" step="0.01" min="0" placeholder="0"></div>
+  <div class="field"><label>Комментарий</label><input type="text" id="fNote" placeholder="необязательно"></div>
+  <div class="field"><label>Дата</label><input type="date" id="fDate"></div>
+  <button class="btn" onclick="saveEntry()">Сохранить</button>
+  <button class="btn gray" style="margin-top:12px" onclick="showView('overview')">Отмена</button>
+</div>
+
+<div id="view-history" class="hidden">
+  <h1>История</h1>
+  <p class="mut" style="margin:4px 0 14px">Нажмите на запись, чтобы изменить</p>
+  <div class="tabs" id="monthTabs"></div>
+  <div class="chips" id="histCatChips" style="margin-bottom:16px"></div>
+  <div id="histList"></div>
+</div>
+
+<div id="view-garage" class="hidden">
+  <h1>Гараж</h1>
+  <p class="mut" style="margin:4px 0 16px">Автомобили, цвет кузова и объём бака</p>
+  <div id="garageList"></div>
+  <h2 id="gFormTitle">Добавить автомобиль</h2>
+  <div class="field"><label>Марка</label><input id="cMake" list="makes" placeholder="например, Toyota">
+    <datalist id="makes"><option>Lada</option><option>Toyota</option><option>Volkswagen</option><option>Kia</option><option>Hyundai</option><option>Skoda</option><option>Renault</option><option>Nissan</option><option>BMW</option><option>Mercedes-Benz</option><option>Audi</option><option>Mazda</option><option>Honda</option><option>Ford</option><option>Chevrolet</option><option>UAZ</option><option>GAZ</option></datalist></div>
+  <div class="field"><label>Модель</label><input id="cModel" placeholder="например, Camry"></div>
+  <div class="row2">
+    <div class="field"><label>Год выпуска</label><input type="number" id="cYear" min="1930" max="2027" placeholder="2020"></div>
+    <div class="field"><label>Объём бака, л</label><input type="number" id="cTank" step="0.1" min="5" placeholder="55"></div>
+  </div>
+  <div class="field"><label>Цвет кузова</label><div class="swatches" id="swatches"></div></div>
+  <div class="field"><label>Фотография</label>
+    <div class="btn-row">
+      <button class="btn gray" onclick="findPhoto()">Найти в интернете</button>
+      <button class="btn gray" onclick="document.getElementById('cPhotoFile').click()">С телефона</button>
+    </div>
+    <input type="file" id="cPhotoFile" accept="image/*" class="hidden" onchange="pickPhoto(this)">
+    <div class="pgrid hidden" id="photoGrid"></div>
+  </div>
+  <div class="field" id="photoPrevWrap"><label>Аватарка</label><div class="avatar" id="cPhotoPrev" style="width:88px;height:88px"></div></div>
+  <button class="btn" id="gSaveBtn" onclick="saveCar()">Сохранить автомобиль</button>
+  <button class="btn gray" style="margin-top:12px" id="gCancelBtn" onclick="resetCarForm()">Очистить форму</button>
+</div>
+
+<nav>
+  <button class="nav-btn" data-v="overview" onclick="showView('overview')"><span class="ic">◉</span>Обзор</button>
+  <button class="nav-btn" data-v="garage" onclick="showView('garage')"><span class="ic">⛟</span>Гараж</button>
+  <button class="fab" onclick="openAdd()">＋</button>
+  <button class="nav-btn" data-v="history" onclick="showView('history')"><span class="ic">≡</span>История</button>
+</nav>
+
+<script>
+const CATS=[["fuel","⛽ Топливо"],["service","🔧 ТО"],["repair","🛠 Ремонт"],["tires","🛞 Шины"],
+["insurance","🛡 Страховка"],["tax","📄 Налоги"],["parking","🅿 Парковка"],["wash","🧼 Мойка"],
+["fine","🚨 Штрафы"],["other","📦 Прочее"]];
+const COLORS=[["Белый","#f4f4f2"],["Чёрный","#2b2b2e"],["Серебристый","#c8ccd0"],["Серый","#7a7f85"],
+["Красный","#c0392b"],["Синий","#2e5fa3"],["Зелёный","#2e7d4f"],["Коричневый","#8b5a2b"],
+["Бежевый","#e6d8b8"],["Оранжевый","#e07b28"],["Жёлтый","#e6c229"],["Фиолетовый","#6a4fa3"]];
+const CUR="carv6";
+let S=load()||{cars:[],cur:null};
+let curCat="fuel", editId=null, carEditId=null, carColor=COLORS[0][1], carPhoto=null, searchResults=[];
+
+function load(){try{return JSON.parse(localStorage.getItem(CUR))}catch(e){return null}}
+function save(){localStorage.setItem(CUR,JSON.stringify(S))}
+function car(){return S.cars.find(c=>c.id===S.cur)}
+function esc(s){return String(s??"").replace(/[&<>"]/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[m]))}
+function fmt(n){return Number(n||0).toLocaleString("ru-RU",{maximumFractionDigits:0})+" ₽"}
+function uid(){return Date.now()+""+Math.floor(Math.random()*1e4)}
+
+function showView(v){
+  ["overview","add","history","garage"].forEach(x=>document.getElementById("view-"+x).classList.toggle("hidden",x!==v));
+  document.querySelectorAll(".nav-btn").forEach(b=>b.classList.toggle("on",b.dataset.v===v));
+  window.scrollTo(0,0);
+  if(v==="overview")renderOverview(); if(v==="history")renderHistory(); if(v==="garage")renderGarage();
+}
+
+/* ---------- ОВЕРВИЮ ---------- */
+function renderOverview(){
+  const c=car();
+  if(!c){document.getElementById("hTitle").textContent="Расходы на авто";
+    document.getElementById("hSub").textContent="Добавьте автомобиль в гараже";
+    document.getElementById("oAvatar").innerHTML='<div class="ph" style="background:#dfe1e6">🚗</div>';
+    document.getElementById("oName").textContent="Автомобиль не выбран";
+    document.getElementById("oCarSub").textContent="";document.getElementById("oTankLbl").textContent="";
+    document.getElementById("oTankFill").style.width="0%";
+    document.getElementById("stMonth").textContent="0 ₽";document.getElementById("stAll").textContent="0 ₽";
+    document.getElementById("stCons").textContent="—";document.getElementById("stKm").textContent="—";
+    document.getElementById("repFuel").textContent="—";document.getElementById("repKm").textContent="";document.getElementById("repLast").textContent="";
+    document.getElementById("chart").innerHTML='<div class="empty" style="margin:auto">Нет данных</div>';return;}
+  document.getElementById("hTitle").textContent="Расходы на авто";
+  document.getElementById("hSub").textContent="Обзор · "+new Date().toLocaleDateString("ru-RU",{month:"long",year:"numeric"});
+  document.getElementById("oAvatar").innerHTML=c.photo?'<img src="'+c.photo+'" alt="">':'<div class="ph" style="background:'+c.color+'">🚗</div>';
+  document.getElementById("oName").innerHTML=(c.make+" "+c.model).trim();
+  document.getElementById("oCarSub").textContent=(c.year?c.year+" г.":"")+(c.color?" · "+c.colorName:"");
+  const st=fuelStats(c), es=c.expenses;
+  const now=new Date(), mk=now.getFullYear()+"-"+String(now.getMonth()+1).padStart(2,"0");
+  const mSum=es.filter(e=>e.date.startsWith(mk)).reduce((a,e)=>a+e.sum,0);
+  const all=es.reduce((a,e)=>a+e.sum,0);
+  document.getElementById("stMonth").textContent=fmt(mSum);
+  document.getElementById("stAll").textContent=fmt(all);
+  document.getElementById("stCons").textContent=st.avg?st.avg.toFixed(1):"—";
+  document.getElementById("stKm").textContent=st.costKm?st.costKm.toFixed(2)+" ₽":"—";
+  /* отчёт */
+  let rep="Израсходовано топлива (по замерам «до полного»): <b>"+st.measured.toFixed(1)+" л</b>";
+  rep+=" · Всего заправлено: <b>"+st.totalLiters.toFixed(1)+" л</b>";
+  if(st.pending>0) rep+="<br>Не учтено в замерах (после последней полной заправки): <b>"+st.pending.toFixed(1)+" л</b>";
+  document.getElementById("repFuel").innerHTML=rep;
+  let km="Пробег по записям: <b>"+(st.distAll?fmt(st.distAll).replace(" ₽"," км"):"—")+"</b>";
+  if(c.tank) km+=" · Бак: <b>"+c.tank+" л</b>";
+  document.getElementById("repKm").innerHTML=km;
+  let last="Последний замер расхода: <b>"+(st.last?st.last.toFixed(1)+" л/100 км":"нет данных")+"</b>";
+  const lvl=tankLevel(c,st);
+  if(lvl!=null) last+="<br>Остаток в баке (оценка): <b>~"+lvl.l.toFixed(0)+" л</b> из "+c.tank+" л ("+Math.round(lvl.p)+"%)";
+  document.getElementById("repLast").innerHTML=last;
+  /* бак */
+  document.getElementById("oTankLbl").textContent=c.tank?"Топливо в баке: "+(lvl!=null?"~"+lvl.l.toFixed(0)+" л ("+Math.round(lvl.p)+"%)":"нет данных"):"Бак не задан";
+  document.getElementById("oTankFill").style.width=(lvl?Math.min(100,lvl.p):0)+"%";
+  /* график */
+  const months=[];for(let i=5;i>=0;i--){const d=new Date(now.getFullYear(),now.getMonth()-i,1);months.push({k:d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0"),l:d.toLocaleDateString("ru-RU",{month:"short"}),s:0});}
+  es.forEach(e=>{const m=months.find(x=>x.k===e.date.slice(0,7));if(m)m.s+=e.sum;});
+  const mx=Math.max(...months.map(m=>m.s),1);
+  document.getElementById("chart").innerHTML=months.map(m=>'<div class="bar"><div class="col" style="height:'+Math.max(4,Math.round(m.s/mx*92))+'%" title="'+fmt(m.s)+'"></div><div class="m">'+m.l+'</div></div>').join("");
+}
+
+/* расход топлива: метод «полного бака» */
+function fuelStats(c){
+  const f=c.expenses.filter(e=>e.cat==="fuel"&&e.liters>0&&e.odometer>0).sort((a,b)=>a.odometer-b.odometer);
+  let pending=0,lastFull=null,segs=[],totalLiters=0,distAll=0;
+  for(const e of f){
+    totalLiters+=e.liters;
+    if(e.toFull){
+      if(lastFull!=null){const d=e.odometer-lastFull;
+        if(d>5){const used=pending+e.liters;segs.push({l:used,d:d,c:used/d*100});distAll+=d;}}
+      pending=0;lastFull=e.odometer;
+    }else pending+=e.liters;
+  }
+  if(lastFull!=null){const lastE=f[f.length-1];const d=lastE.odometer-lastFull;
+    if(d>5)distAll+=d;}
+  const avg=segs.length?segs.reduce((a,s)=>a+s.c,0)/segs.length:0;
+  const measured=segs.reduce((a,s)=>a+s.l,0);
+  const fuelAll=c.expenses.filter(e=>e.cat==="fuel");
+  const fuelCost=fuelAll.reduce((a,e)=>a+e.sum,0);
+  const costKm=(distAll>0&&fuelCost>0)?fuelCost/distAll:0;
+  return{segs,avg,measured,totalLiters,pending,distAll,costKm,last:segs.length?segs[segs.length-1].c:null};
+}
+function tankLevel(c,st){
+  if(!c.tank)return null;
+  const f=c.expenses.filter(e=>e.cat==="fuel"&&e.liters>0).sort((a,b)=>a.odometer-b.odometer);
+  if(!f.length)return null;
+  const last=f[f.length-1];
+  if(last.toFull)return{l:c.tank,p:100};
+  let added=0;for(let i=f.length-1;i>=0;i--){if(f[i].toFull)break;added+=f[i].liters;}
+  if(!st.avg)return null;
+  let odo=last.odometer,base=null;
+  for(let i=f.length-1;i>=0;i--){if(f[i].toFull){base=f[i].odometer;break;}}
+  if(base==null)return null;
+  const dist=odo-base, burn=st.avg/100*dist;
+  const l=Math.max(0,Math.min(c.tank,c.tank+added-burn));
+  return{l:l,p:l/c.tank*100};
+}
+
+/* ---------- ДОБАВЛЕНИЕ ---------- */
+function openAdd(){editId=null;document.getElementById("addTitle").textContent="Новая запись";
+  document.getElementById("fDate").value=new Date().toISOString().slice(0,10);
+  ["fLiters","fPrice","fOdo","fSum","fNote"].forEach(i=>document.getElementById(i).value="");
+  document.getElementById("fTotal").textContent="0,00 ₽";document.getElementById("fFull").checked=false;
+  setCat(curCat||"fuel");showView("add");}
+function openEdit(id){const c=car();if(!c)return;const e=c.expenses.find(x=>x.id===id);if(!e)return;
+  editId=id;document.getElementById("addTitle").textContent="Изменить запись";
+  document.getElementById("fDate").value=e.date;document.getElementById("fNote").value=e.note||"";
+  document.getElementById("fLiters").value=e.liters||"";document.getElementById("fPrice").value=e.price||"";
+  document.getElementById("fOdo").value=e.odometer||"";document.getElementById("fSum").value=e.cat==="fuel"?"":e.sum;
+  document.getElementById("fFull").checked=!!e.toFull;recalcTotal();
+  setCat(e.cat);showView("add");}
+function setCat(cat){
+  curCat=cat;
+  document.querySelectorAll("#catChips .chip").forEach(ch=>ch.classList.toggle("on",ch.dataset.cat===cat));
+  const fuel=cat==="fuel";
+  document.getElementById("fuelFields").classList.toggle("hidden",!fuel);
+  document.getElementById("sumField").classList.toggle("hidden",fuel);
+}
+function recalcTotal(){
+  const l=parseFloat(document.getElementById("fLiters").value)||0;
+  const p=parseFloat(document.getElementById("fPrice").value)||0;
+  document.getElementById("fTotal").textContent=(l*p).toLocaleString("ru-RU",{minimumFractionDigits:2,maximumFractionDigits:2})+" ₽";
+}
+document.addEventListener("input",e=>{if(e.target.id==="fLiters"||e.target.id==="fPrice")recalcTotal();});
+function saveEntry(){
+  const c=car();if(!c){alert("Сначала добавьте автомобиль в гараже");showView("garage");return;}
+  const date=document.getElementById("fDate").value||new Date().toISOString().slice(0,10);
+  const note=document.getElementById("fNote").value.trim();
+  let e;
+  if(editId){e=c.expenses.find(x=>x.id===editId);}
+  else{e={id:uid()};c.expenses.push(e);}
+  e.cat=curCat;e.date=date;e.note=note;
+  if(curCat==="fuel"){
+    const l=parseFloat(document.getElementById("fLiters").value)||0;
+    const p=parseFloat(document.getElementById("fPrice").value)||0;
+    const odo=parseFloat(document.getElementById("fOdo").value)||0;
+    if(l<=0||p<=0){alert("Укажите объём топлива и цену за литр");return;}
+    e.liters=l;e.price=p;e.sum=Math.round(l*p*100)/100;e.odometer=odo;e.toFull=document.getElementById("fFull").checked;
+  }else{
+    const s=parseFloat(document.getElementById("fSum").value)||0;
+    if(s<=0){alert("Укажите сумму");return;}
+    e.sum=s;delete e.liters;delete e.price;delete e.toFull;delete e.odometer;
+  }
+  save();editId=null;showView("overview");
+}
+
+/* ---------- ИСТОРИЯ ---------- */
+let histMonth="all",histCat="all";
+function renderHistory(){
+  const c=car();const mt=document.getElementById("monthTabs");
+  const hcc=document.getElementById("histCatChips");
+  hcc.innerHTML='<div class="chip'+(histCat==="all"?" on":"")+'" data-cat="all" onclick="histCat=\'all\';renderHistory()">Все</div>'+
+    CATS.map(x=>'<div class="chip'+(histCat===x[0]?" on":"")+'" data-cat="'+x[0]+'" onclick="histCat=\''+x[0]+'\';renderHistory()">'+x[1]+'</div>').join("");
+  if(!c){mt.innerHTML="";document.getElementById("histList").innerHTML='<div class="empty">Добавьте автомобиль в гараже</div>';return;}
+  const es=[...c.expenses].sort((a,b)=>b.date.localeCompare(a.date));
+  const months=["all",...new Set(es.map(e=>e.date.slice(0,7)))];
+  mt.innerHTML=months.map(m=>{
+    const lbl=m==="all"?"Всё время":new Date(m+"-01T00:00:00").toLocaleDateString("ru-RU",{month:"short",year:"2-digit"});
+    return '<button class="'+(histMonth===m?"on":"")+'" onclick="histMonth=\''+m+'\';renderHistory()">'+lbl+'</button>';}).join("");
+  let list=es.filter(e=>(histMonth==="all"||e.date.startsWith(histMonth))&&(histCat==="all"||e.cat===histCat));
+  const cName=x=>(CATS.find(t=>t[0]===x)||["?"])[1];
+  document.getElementById("histList").innerHTML=list.length?list.map(e=>{
+    let s=cName(e.cat)+(e.liters?" · "+e.liters+" л по "+e.price+" ₽/л":"")+(e.toFull?" · до полного":"")+(e.odometer?" · пробег "+fmt(e.odometer).replace(" ₽","")+" км":"")+(e.note?" · "+esc(e.note):"");
+    return '<div class="entry neu-sm"><div style="flex:1;min-width:0"><div class="t">'+new Date(e.date).toLocaleDateString("ru-RU",{day:"numeric",month:"long"})+'</div><div class="s">'+s+'</div><div class="act"><button class="mini" onclick="openEdit(\''+e.id+'\')">Изменить</button><button class="mini del" onclick="delEntry(\''+e.id+'\')">Удалить</button></div></div><div class="sum">'+fmt(e.sum)+'</div></div>';
+  }).join(""):'<div class="empty">Записей нет</div>';
+}
+function delEntry(id){const c=car();if(!c||!confirm("Удалить запись?"))return;
+  c.expenses=c.expenses.filter(e=>e.id!==id);save();renderHistory();}
+
+/* ---------- ГАРАЖ ---------- */
+function renderGarage(){
+  document.getElementById("garageList").innerHTML=S.cars.length?S.cars.map(x=>
+   '<div class="carcard neu-sm"><div class="mini-avatar">'+(x.photo?'<img src="'+x.photo+'">':'<div class="ph" style="background:'+x.color+'">🚗</div>')+'</div>'+
+   '<div style="flex:1;min-width:0"><div class="t" style="font-weight:700">'+esc((x.make+" "+x.model).trim())+'</div>'+
+   '<div class="s" style="font-size:.8rem;color:var(--mut)">'+(x.year||"")+' <span class="cdot" style="background:'+x.color+'"></span> '+esc(x.colorName||"")+(x.tank?" · бак "+x.tank+" л":"")+' · '+x.expenses.length+' зап.</div></div>'+
+   '<div style="display:flex;flex-direction:column;gap:8px"><button class="mini'+(x.id===S.cur?" on":"")+'" style="'+(x.id===S.cur?"color:var(--mintdeep)":"")+'" onclick="selectCar(\''+x.id+'\')">'+(x.id===S.cur?"Выбрана":"Выбрать")+'</button>'+
+   '<button class="mini" onclick="editCar(\''+x.id+'\')">Изменить</button><button class="mini del" onclick="delCar(\''+x.id+'\')">Удалить</button></div></div>').join("")
+   :'<div class="empty neu" style="padding:26px">Гараж пуст — добавьте первый автомобиль</div>';
+  const sw=document.getElementById("swatches");
+  sw.innerHTML=COLORS.map(c=>'<div class="sw'+(carColor===c[1]?" on":"")+'" style="background:'+c[1]+'" title="'+c[0]+'" onclick="carColor=\''+c[1]+'\';carColorName=\''+c[0]+'\';renderGarageSw()"></div>').join("");
+}
+function renderGarageSw(){document.querySelectorAll("#swatches .sw").forEach(s=>s.classList.toggle("on",s.title===(carColorName||"")));/*обновить превью*/
+  const c=car();document.getElementById("cPhotoPrev").innerHTML=carPhoto?'<img src="'+carPhoto+'">':'<div class="ph" style="background:'+carColor+'">🚗</div>';}
+let carColorName=COLORS[0][0];
+function editCar(id){const x=S.cars.find(c=>c.id===id);if(!x)return;
+  carEditId=id;carColor=x.color;carColorName=x.colorName||"";carPhoto=x.photo||null;
+  document.getElementById("cMake").value=x.make;document.getElementById("cModel").value=x.model;
+  document.getElementById("cYear").value=x.year||"";document.getElementById("cTank").value=x.tank||"";
+  document.getElementById("gFormTitle").textContent="Изменить автомобиль";
+  document.getElementById("gSaveBtn").textContent="Сохранить изменения";
+  document.getElementById("photoGrid").classList.add("hidden");
+  renderGarage();document.getElementById("cPhotoPrev").innerHTML=carPhoto?'<img src="'+carPhoto+'">':'<div class="ph" style="background:'+carColor+'">🚗</div>';
+  window.scrollTo({top:document.getElementById("gFormTitle").offsetTop-20,behavior:"smooth"});}
+function resetCarForm(){carEditId=null;carPhoto=null;carColor=COLORS[0][1];carColorName=COLORS[0][0];
+  ["cMake","cModel","cYear","cTank"].forEach(i=>document.getElementById(i).value="");
+  document.getElementById("gFormTitle").textContent="Добавить автомобиль";
+  document.getElementById("gSaveBtn").textContent="Сохранить автомобиль";
+  document.getElementById("photoGrid").classList.add("hidden");
+  document.getElementById("cPhotoPrev").innerHTML='<div class="ph" style="background:'+carColor+'">🚗</div>';
+  renderGarage();}
+function selectCar(id){S.cur=id;save();renderGarage();}
+function delCar(id){if(!confirm("Удалить автомобиль и все его записи?"))return;
+  S.cars=S.cars.filter(c=>c.id!==id);
+  if(S.cur===id)S.cur=S.cars.length?S.cars[0].id:null;
+  save();renderGarage();}
+function saveCar(){
+  const make=document.getElementById("cMake").value.trim(),model=document.getElementById("cModel").value.trim();
+  if(!make){alert("Укажите марку");return;}
+  const year=parseInt(document.getElementById("cYear").value)||null;
+  const tank=parseFloat(document.getElementById("cTank").value)||null;
+  let x;
+  if(carEditId){x=S.cars.find(c=>c.id===carEditId);}
+  else{x={id:uid(),expenses:[]};S.cars.push(x);if(!S.cur)S.cur=x.id;}
+  x.make=make;x.model=model;x.year=year;x.tank=tank;x.color=carColor;x.colorName=carColorName;
+  if(carPhoto)x.photo=carPhoto;
+  save();resetCarForm();showView("overview");
+}
+/* фото из открытых источников */
+async function findPhoto(){
+  const make=document.getElementById("cMake").value.trim(),model=document.getElementById("cModel").value.trim();
+  if(!make){alert("Сначала укажите марку");return;}
+  const q=(make+" "+model).trim();
+  document.getElementById("photoGrid").classList.remove("hidden");
+  document.getElementById("photoGrid").innerHTML='<div class="empty" style="grid-column:1/-1">Ищу фото…</div>';
+  searchResults=[];
+  try{
+    const r1=await fetch("https://ru.wikipedia.org/w/api.php?action=query&generator=search&gsrsearch="+encodeURIComponent(q)+"&gsrlimit=3&prop=pageimages&piprop=thumbnail&pithumbsize=640&format=json&origin=*");
+    const j1=await r1.json();
+    if(j1.query&&j1.query.pages)for(const p of Object.values(j1.query.pages))
+      if(p.thumbnail&&p.thumbnail.source)searchResults.push(p.thumbnail.source);
+  }catch(e){}
+  try{
+    const r2=await fetch("https://commons.wikimedia.org/w/api.php?action=query&generator=search&gsrnamespace=6&gsrlimit=8&gsrsearch="+encodeURIComponent(q)+"&prop=imageinfo&iiprop=url&iiurlwidth=640&format=json&origin=*");
+    const j2=await r2.json();
+    if(j2.query&&j2.query.pages)for(const p of Object.values(j2.query.pages)){
+      if(p.imageinfo&&p.imageinfo[0]&&p.imageinfo[0].thumburl){
+        const u=p.imageinfo[0].thumburl;
+        if(!/\.(svg|gif)$/i.test(u)&&!searchResults.includes(u))searchResults.push(u);}}
+  }catch(e){}
+  const g=document.getElementById("photoGrid");
+  g.innerHTML=searchResults.length?searchResults.map(u=>'<img src="'+u+'" onclick="choosePhoto(\''+u+'\')">').join(""):'<div class="empty" style="grid-column:1/-1">Ничего не найдено — загрузите фото с телефона</div>';
+}
+function choosePhoto(u){carPhoto=u;
+  document.getElementById("cPhotoPrev").innerHTML='<img src="'+u+'">';
+  document.querySelectorAll("#photoGrid img").forEach(i=>i.classList.toggle("on",i.src===u));}
+function pickPhoto(inp){const f=inp.files[0];if(!f)return;
+  const r=new FileReader();r.onload=ev=>{carPhoto=ev.target.result;
+    document.getElementById("cPhotoPrev").innerHTML='<img src="'+ev.target.result+'">';};
+  r.readAsDataURL(f);}
+
+/* ---------- CSV ---------- */
+function exportCSV(){
+  const c=car();if(!c){alert("Нет выбранного автомобиля");return;}
+  const cName=x=>(CATS.find(t=>t[0]===x)||["?","?"])[1];
+  let rows=[["Дата","Автомобиль","Категория","Сумма","Литры","Цена/л","Одометр","До полного","Комментарий"]];
+  [...c.expenses].sort((a,b)=>b.date.localeCompare(a.date)).forEach(e=>
+    rows.push([e.date,(c.make+" "+c.model).trim(),cName(e.cat),e.sum,e.liters||"",e.price||"",e.odometer||"",e.toFull?"да":"",e.note||""]));
+  const csv="\uFEFF"+rows.map(r=>r.map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(";")).join("\n");
+  const a=document.createElement("a");
+  a.href=URL.createObjectURL(new Blob([csv],{type:"text/csv"}));
+  a.download="rashody_"+(c.make+"_"+c.model).replace(/\s+/g,"_")+".csv";a.click();
+}
+
+/* init */
+if(S.cars.length&&!S.cur)S.cur=S.cars[0].id;
+document.getElementById("catChips").innerHTML=CATS.map(x=>'<div class="chip" data-cat="'+x[0]+'" onclick="setCat(\''+x[0]+'\')">'+x[1]+'</div>').join("");
+setCat("fuel");showView("overview");
+</script>
+</body>
+</html>
